@@ -1287,7 +1287,6 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
     // Notifies only if the pasted item is nested in a dictionary.
     if ([notification.userInfo isKindOfClass:[NSDictionary class]]) {
         [self didPasteMediaContent:notification.userInfo];
-        [[NSNotificationCenter defaultCenter] postNotificationName:UITextViewTextDidChangeNotification object:nil];
     }
 }
 
