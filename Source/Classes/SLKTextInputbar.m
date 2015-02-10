@@ -446,13 +446,6 @@
 
 - (void)_didChangeTextViewText:(NSNotification *)notification
 {
-    SLKTextView *textView = (SLKTextView *)notification.object;
-    
-    // Skips this it's not the expected textView.
-    if (![textView isEqual:self.textView] && ![self.textView isFirstResponder]) {
-        return;
-    }
-    
     // Updates the char counter label
     if (self.maxCharCount > 0) {
         [self updateCounter];
