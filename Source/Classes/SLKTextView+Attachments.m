@@ -26,9 +26,7 @@
     
     
     NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
-    textAttachment.image = [self imageWithImage:image scaledToSize:CGSizeMake(IMAGE_THUMB_SIZE, IMAGE_THUMB_SIZE) roundedCorners:roundedCorners];
-    textAttachment.bounds = CGRectMake(0, 0, IMAGE_THUMB_SIZE, IMAGE_THUMB_SIZE);
-    
+    textAttachment.image = [self imageWithImage:image roundedCorners:roundedCorners];
     NSAttributedString *attrStringWithImage = [NSAttributedString attributedStringWithAttachment:textAttachment];
     [attributedString insertAttributedString:attrStringWithImage atIndex:0];
     self.attributedText = attributedString;
@@ -48,36 +46,23 @@
     return result;
 }
 
-- (UIImage*)imageWithImage:(UIImage*)image
-              scaledToSize:(CGSize)newSize roundedCorners:(BOOL)roundedCorners;
-{
-    UIGraphicsBeginImageContext( newSize );
-    [image drawInRect:CGRectMake(0,0,newSize.width,newSize.height)];
-    UIImage* newImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    if(roundedCorners) {
-        return [self makeRoundCornersWithRadius:5.0 inputImage:newImage];
-    } else {
-        return newImage;
-    }
+- (UIImage*)imageWithImage:(UIImage*)image roundedCorners:(BOOL)roundedCorners {
+    CGFloat oldWidth = image.size.width;
+    CGFloat scaleFactor = oldWidth / (CGRectGetWidth(self.frame)/4);
+    image = [UIImage imageWithCGImage:image.CGImage scale:scaleFactor orientation:UIImageOrientationUp];
+    
+    return roundedCorners ? [self makeRoundCornersWithRadius:5.0 inputImage:image] : image;
 }
 
 -(UIImage*)makeRoundCornersWithRadius:(const CGFloat)RADIUS inputImage:(UIImage *)inputImage {
     UIImage *image = inputImage;
-    
     // Begin a new image that will be the new image with the rounded corners
-    // (here with the size of an UIImageView)
     UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
-    
     const CGRect RECT = CGRectMake(0, 0, image.size.width, image.size.height);
-    // Add a clip before drawing anything, in the shape of an rounded rect
     [[UIBezierPath bezierPathWithRoundedRect:RECT cornerRadius:RADIUS] addClip];
-    // Draw your imageF
     [image drawInRect:RECT];
     
     UIImage *imageNew = UIGraphicsGetImageFromCurrentImageContext();
-    
-    // Cya later image that was drawn
     UIGraphicsEndImageContext();
     
     return imageNew;
