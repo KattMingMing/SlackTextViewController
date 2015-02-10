@@ -17,6 +17,7 @@
 #import "SLKTextViewController.h"
 #import "SLKInputAccessoryView.h"
 #import "SLKUIConstants.h"
+#import "SLKTextView+Attachments.h"
 
 NSString * const SLKKeyboardWillShowNotification =  @"SLKKeyboardWillShowNotification";
 NSString * const SLKKeyboardDidShowNotification =   @"SLKKeyboardDidShowNotification";
@@ -395,23 +396,18 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
 
 - (CGFloat)_appropriateInputbarHeight
 {
-    CGFloat height = 0.0;
+    BOOL hasImage = [self.textView slk_hasImageAttachment];
+    CGFloat maximumHeight = [self _inputBarHeightForLines:self.textView.maxNumberOfLines];
     CGFloat minimumHeight = [self _minimumInputbarHeight];
     
-    if (self.textView.numberOfLines == 1) {
-        height = minimumHeight;
-    }
-    else if (self.textView.numberOfLines < self.textView.maxNumberOfLines) {
-        height = [self _inputBarHeightForLines:self.textView.numberOfLines];
-    }
-    else {
-        height = [self _inputBarHeightForLines:self.textView.maxNumberOfLines];
-    }
+    CGRect textRect = [self.textView.attributedText boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.textView.frame), INT16_MAX)
+                                                                 options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                                                                 context:nil];
     
-    
-    if (height < minimumHeight) {
-        height = minimumHeight;
-    }
+    const int extraPadding = hasImage? 10 : 0;
+    CGFloat height = self.textInputbar.contentInset.top + self.textInputbar.contentInset.bottom + textRect.size.height;
+    height = MIN(MAX(height + extraPadding * 2, minimumHeight), maximumHeight);
+    return roundf(height);
     
     if (self.isEditing) {
         height += self.textInputbar.editorContentViewHeight;
@@ -1292,6 +1288,7 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
     // Notifies only if the pasted item is nested in a dictionary.
     if ([notification.userInfo isKindOfClass:[NSDictionary class]]) {
         [self didPasteMediaContent:notification.userInfo];
+        [[NSNotificationCenter defaultCenter] postNotificationName:UITextViewTextDidChangeNotification object:nil];
     }
 }
 
