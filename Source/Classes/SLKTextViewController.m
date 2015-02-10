@@ -407,7 +407,6 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
     const int extraPadding = hasImage? 10 : 0;
     CGFloat height = self.textInputbar.contentInset.top + self.textInputbar.contentInset.bottom + textRect.size.height;
     height = MIN(MAX(height + extraPadding * 2, minimumHeight), maximumHeight);
-    return roundf(height);
     
     if (self.isEditing) {
         height += self.textInputbar.editorContentViewHeight;
