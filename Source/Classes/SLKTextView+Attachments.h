@@ -10,7 +10,7 @@
 
 @interface SLKTextView (Attachments)
 
-- (void)slk_insertImage:(UIImage *)image;
+- (void)slk_insertImage:(UIImage *)image roundedCorners:(BOOL)roundedCorners;
 - (BOOL)slk_hasImageAttachment;
 
 @end
