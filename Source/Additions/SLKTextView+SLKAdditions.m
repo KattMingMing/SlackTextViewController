@@ -18,6 +18,16 @@
 
 @implementation SLKTextView (SLKAdditions)
 
+- (void)slk_clearText:(BOOL)clearUndo
+{
+    // Important to call self implementation, as SLKTextView overrides setText: to add additional features.
+    [self setText:nil];
+    
+    if (self.undoManagerEnabled && clearUndo) {
+        [self.undoManager removeAllActions];
+    }
+}
+
 - (void)slk_scrollToCaretPositonAnimated:(BOOL)animated
 {
     if (animated) {
@@ -141,7 +151,7 @@
         *rangePointer = [text rangeOfString:word];
         word = [[word componentsSeparatedByString:@"\n"] lastObject];
     }
-
+    
     return word;
 }
 
@@ -151,8 +161,26 @@
         return;
     }
     
-    [[self.undoManager prepareWithInvocationTarget:self] setText:self.text];
+    SLKTextView *prepareInvocation = [self.undoManager prepareWithInvocationTarget:self];
+    [prepareInvocation setText:self.text];
     [self.undoManager setActionName:description];
+}
+
++ (CGFloat)pointSizeDifferenceForCategory:(NSString *)category
+{
+    if ([category isEqualToString:UIContentSizeCategoryExtraSmall])                         return -3.0;
+    if ([category isEqualToString:UIContentSizeCategorySmall])                              return -2.0;
+    if ([category isEqualToString:UIContentSizeCategoryMedium])                             return -1.0;
+    if ([category isEqualToString:UIContentSizeCategoryLarge])                              return 0.0;
+    if ([category isEqualToString:UIContentSizeCategoryExtraLarge])                         return 2.0;
+    if ([category isEqualToString:UIContentSizeCategoryExtraExtraLarge])                    return 4.0;
+    if ([category isEqualToString:UIContentSizeCategoryExtraExtraExtraLarge])               return 6.0;
+    if ([category isEqualToString:UIContentSizeCategoryAccessibilityMedium])                return 8.0;
+    if ([category isEqualToString:UIContentSizeCategoryAccessibilityLarge])                 return 10.0;
+    if ([category isEqualToString:UIContentSizeCategoryAccessibilityExtraLarge])            return 11.0;
+    if ([category isEqualToString:UIContentSizeCategoryAccessibilityExtraExtraLarge])       return 12.0;
+    if ([category isEqualToString:UIContentSizeCategoryAccessibilityExtraExtraExtraLarge])  return 13.0;
+    return 0;
 }
 
 @end
