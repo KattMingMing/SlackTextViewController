@@ -17,6 +17,7 @@
 #import "SLKTextViewController.h"
 #import "SLKInputAccessoryView.h"
 #import "SLKUIConstants.h"
+#import "SLKTextView+Attachments.h"
 
 NSString * const SLKKeyboardWillShowNotification =  @"SLKKeyboardWillShowNotification";
 NSString * const SLKKeyboardDidShowNotification =   @"SLKKeyboardDidShowNotification";
@@ -395,23 +396,17 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
 
 - (CGFloat)_appropriateInputbarHeight
 {
-    CGFloat height = 0.0;
+    BOOL hasImage = [self.textView slk_hasImageAttachment];
+    CGFloat maximumHeight = [self _inputBarHeightForLines:self.textView.maxNumberOfLines];
     CGFloat minimumHeight = [self _minimumInputbarHeight];
     
-    if (self.textView.numberOfLines == 1) {
-        height = minimumHeight;
-    }
-    else if (self.textView.numberOfLines < self.textView.maxNumberOfLines) {
-        height = [self _inputBarHeightForLines:self.textView.numberOfLines];
-    }
-    else {
-        height = [self _inputBarHeightForLines:self.textView.maxNumberOfLines];
-    }
+    CGRect textRect = [self.textView.attributedText boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.textView.frame), INT16_MAX)
+                                                                 options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                                                                 context:nil];
     
-    
-    if (height < minimumHeight) {
-        height = minimumHeight;
-    }
+    const int extraPadding = hasImage? 10 : 0;
+    CGFloat height = self.textInputbar.contentInset.top + self.textInputbar.contentInset.bottom + textRect.size.height;
+    height = MIN(MAX(height + extraPadding * 2, minimumHeight), maximumHeight);
     
     if (self.isEditing) {
         height += self.textInputbar.editorContentViewHeight;
@@ -1372,12 +1367,8 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
     _registeredPrefixes = [[NSArray alloc] initWithArray:array];
 }
 
-- (void)_processTextForAutoCompletion
-{
-    if (self.isRotating || self.textView.isFastDeleting) {
-        return;
-    }
-    
+- (void)_processTextForAutoCompletion {
+
     // Avoids text processing for autocompletion if the registered prefix list is empty.
     if (self.registeredPrefixes.count == 0) {
         return;
@@ -1539,9 +1530,9 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
     // Toggles auto-correction if requiered
     [self _enableTypingSuggestionIfNeeded];
     
-	[self.view slk_animateLayoutIfNeededWithBounce:self.bounces
-										   options:UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionBeginFromCurrentState
-										animations:NULL];
+    [self.view slk_animateLayoutIfNeededWithBounce:self.bounces
+                                           options:UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionBeginFromCurrentState
+                                        animations:NULL];
 }
 
 
@@ -1869,7 +1860,6 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_didChangeTextViewContentSize:) name:SLKTextViewContentSizeDidChangeNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_didChangeTextViewPasteboard:) name:SLKTextViewDidPasteItemNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_didShakeTextView:) name:SLKTextViewDidShakeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_didDeleteInTextView:) name:SLKTextViewDidFinishDeletingNotification object:nil];
 
     // TypeIndicator notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_willShowOrHideTypeIndicatorView:) name:SLKTypingIndicatorViewWillShowNotification object:nil];
@@ -1906,7 +1896,6 @@ NSString * const SLKKeyboardDidHideNotification =   @"SLKKeyboardDidHideNotifica
     [[NSNotificationCenter defaultCenter] removeObserver:self name:SLKTextViewContentSizeDidChangeNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:SLKTextViewDidPasteItemNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:SLKTextViewDidShakeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:SLKTextViewDidFinishDeletingNotification object:nil];
 
     // TypeIndicator notifications
     [[NSNotificationCenter defaultCenter] removeObserver:self name:SLKTypingIndicatorViewWillShowNotification object:nil];
